@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.22)
 
 project(Programming_Qt VERSION 0.1 LANGUAGES CXX)
 
@@ -8,6 +8,9 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Generate compile_commands.json for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
@@ -81,3 +84,59 @@ install(TARGETS Programming_Qt
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(Programming_Qt)
 endif()
+
+# ============================================================
+# Additional PPP3 exercises
+# ============================================================
+
+# Reuse the original source list, but exclude its main.cpp.
+set(PPP_COMMON_SOURCES ${PROJECT_SOURCES})
+list(REMOVE_ITEM PPP_COMMON_SOURCES main.cpp)
+
+# Each exercise is a separate executable.
+# Missing exercise files are skipped until you create them.
+function(add_ppp_exercise target)
+    set(source "exercises/${target}.cpp")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+        message(STATUS "Skipping ${target}: ${source} not found")
+        return()
+    endif()
+
+    if(QT_VERSION_MAJOR GREATER_EQUAL 6)
+        qt_add_executable(${target}
+            MANUAL_FINALIZATION
+            ${source}
+            ${PPP_COMMON_SOURCES}
+        )
+    else()
+        add_executable(${target}
+            ${source}
+            ${PPP_COMMON_SOURCES}
+        )
+    endif()
+
+    target_link_libraries(${target}
+        PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+    )
+
+    target_include_directories(${target}
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    # Keep exercises warning-enabled without treating every
+    # warning as an error.
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /EHsc /W4)
+    else()
+        target_compile_options(${target} PRIVATE
+            -Wall -Wextra -Wpedantic
+        )
+    endif()
+
+    if(QT_VERSION_MAJOR EQUAL 6)
+        qt_finalize_executable(${target})
+    endif()
+endfunction()
+
+# Add chapter targets as you create the corresponding files.
+add_ppp_exercise(ch10_hello)
