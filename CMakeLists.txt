@@ -140,3 +140,7 @@ endfunction()
 
 # Add chapter targets as you create the corresponding files.
 add_ppp_exercise(ch10_hello)
+add_ppp_exercise(ch10_d1)
+add_ppp_exercise(ch10_d2)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/assets/sakura.jpg" "${CMAKE_CURRENT_BINARY_DIR}/sakura.jpg" COPYONLY)
+add_ppp_exercise(ch10_d3)
